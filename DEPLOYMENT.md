@@ -20,6 +20,31 @@
 
 ---
 
+## 🧩 系統整合架構
+
+本專案已整合以下三大模組：
+
+1. **前端**：Vue.js 應用程序位於 `web/`，使用 Docker 多階段建構後生成靜態資源，最終由 `vue-frontend` 服務提供。
+2. **反向代理**：主 Nginx 服務位於 `nginx/`，負責將 `/` 轉發到 `vue-frontend`，並將 `/api/golang/` 與 `/api/ai/` 轉發到後端服務。
+3. **後端**：`golang-api` 與 `python-ai` 服務分別處理業務 API 與 AI 服務，並共用 `mariadb` 資料庫。
+
+### Nginx 轉發確認
+
+目前 Nginx 配置已經正確指向：
+
+- `/` → `http://vue_frontend`（Vue.js 前端）
+- `/api/golang/` → `http://golang_api`
+- `/api/ai/` → `http://python_ai`
+
+實際測試結果：
+
+- `curl -I http://192.168.50.75/` 回應 `HTTP/1.1 200 OK`
+- 主頁已成功載入 Vue.js HTML
+
+這表示 Nginx 已經正確把 Vue.js 頁面轉發出來。
+
+---
+
 ## 🛠️ 環境要求
 
 ### 系統要求
