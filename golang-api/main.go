@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/penghu-digital-captain/golang-api/handlers"
+	"github.com/penghu-digital-captain/golang-api/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -78,9 +79,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("❌ 資料庫初始化失敗: %v", err)
 	}
+	log.Printf("✅ 資料庫連接成功，db = %v", db != nil)
 
 	// 自動遷移模型
-	// db.AutoMigrate(&models.User{}, &models.EnvironmentalData{}, &models.Asset{}, &models.Task{})
+	log.Println("🔄 開始自動遷移...")
+	db.AutoMigrate(&models.User{}, &models.EnvironmentalData{}, &models.Asset{}, &models.Task{}, &models.OperationLog{})
+	log.Println("✅ 自動遷移完成")
 
 	// 設置 Gin 引擎
 	router := gin.Default()
@@ -101,6 +105,7 @@ func main() {
 
 	// API 路由群組
 	api := router.Group("/api")
+	log.Printf("📋 註冊 API 路由群組: /api")
 	{
 		// 日誌服務
 		logHandler := handlers.NewLogHandler()
@@ -111,8 +116,110 @@ func main() {
 		api.GET("/dashboard", getDashboard)
 
 		// 環境數據
+		log.Printf("🔗 註冊環境數據路由: GET /api/environmental-data")
 		api.GET("/environmental-data", getEnvironmentalData)
 		api.POST("/environmental-data", createEnvironmentalData)
+
+// ============================================
+// 資產/庫存處理
+// ============================================
+
+func getAssets(c *gin.Context) {
+	var assets []models.Asset
+	if err := db.Preload("User").Find(&assets).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "獲取資產數據失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "資產列表",
+		"data":    assets,
+	})
+}
+
+func createAsset(c *gin.Context) {
+	var asset models.Asset
+	if err := c.ShouldBindJSON(&asset); err != nil {
+		c.JSON(400, gin.H{
+			"message": "請求數據格式錯誤",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := db.Create(&asset).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "創建資產失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(201, gin.H{
+		"message": "資產已創建",
+		"data":    asset,
+	})
+}
+
+func updateAsset(c *gin.Context) {
+	id := c.Param("id")
+	var asset models.Asset
+
+	if err := db.First(&asset, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "資產不存在",
+		})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&asset); err != nil {
+		c.JSON(400, gin.H{
+			"message": "請求數據格式錯誤",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := db.Save(&asset).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "更新資產失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "資產已更新",
+		"data":    asset,
+	})
+}
+
+func deleteAsset(c *gin.Context) {
+	id := c.Param("id")
+	var asset models.Asset
+
+	if err := db.First(&asset, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "資產不存在",
+		})
+		return
+	}
+
+	if err := db.Delete(&asset).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "刪除資產失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "資產已刪除",
+	})
+}
 
 		// 資產/庫存
 		api.GET("/assets", getAssets)
@@ -120,11 +227,11 @@ func main() {
 		api.PUT("/assets/:id", updateAsset)
 		api.DELETE("/assets/:id", deleteAsset)
 
-		// 任務
-		api.GET("/tasks", getTasks)
-		api.POST("/tasks", createTask)
-		api.PUT("/tasks/:id", updateTask)
-		api.DELETE("/tasks/:id", deleteTask)
+		// 用戶管理
+		api.GET("/users", getUsers)
+		api.POST("/users", createUser)
+		api.PUT("/users/:id", updateUser)
+		api.DELETE("/users/:id", deleteUser)
 	}
 
 	// 啟動伺服器
@@ -186,18 +293,34 @@ func getDashboard(c *gin.Context) {
 // ============================================
 
 func getEnvironmentalData(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "環境數據列表",
-		"data": []gin.H{},
+	log.Printf("🔍 查詢環境數據... 函數被調用")
+	c.JSON(500, gin.H{
+		"message": "測試錯誤響應",
+		"error":   "函數被調用",
 	})
-}
+	return
 
 func createEnvironmentalData(c *gin.Context) {
+	var data models.EnvironmentalData
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(400, gin.H{
+			"message": "請求數據格式錯誤",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := db.Create(&data).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "創建環境數據失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(201, gin.H{
 		"message": "環境數據已記錄",
-		"data": gin.H{
-			"id": 1,
-		},
+		"data":    data,
 	})
 }
 
@@ -236,27 +359,194 @@ func deleteAsset(c *gin.Context) {
 // ============================================
 
 func getTasks(c *gin.Context) {
+	var tasks []models.Task
+	if err := db.Preload("User").Find(&tasks).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "獲取任務數據失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(200, gin.H{
 		"message": "任務列表",
-		"data": []gin.H{},
+		"data":    tasks,
 	})
 }
 
 func createTask(c *gin.Context) {
+	var task models.Task
+	if err := c.ShouldBindJSON(&task); err != nil {
+		c.JSON(400, gin.H{
+			"message": "請求數據格式錯誤",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := db.Create(&task).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "創建任務失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(201, gin.H{
-		"message": "任務已建立",
-		"data": gin.H{
-			"id": 1,
-		},
+		"message": "任務已創建",
+		"data":    task,
 	})
 }
 
 func updateTask(c *gin.Context) {
+	id := c.Param("id")
+	var task models.Task
+
+	if err := db.First(&task, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "任務不存在",
+		})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&task); err != nil {
+		c.JSON(400, gin.H{
+			"message": "請求數據格式錯誤",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := db.Save(&task).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "更新任務失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(200, gin.H{
 		"message": "任務已更新",
+		"data":    task,
 	})
 }
 
 func deleteTask(c *gin.Context) {
-	c.JSON(204, nil)
+	id := c.Param("id")
+	var task models.Task
+
+	if err := db.First(&task, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "任務不存在",
+		})
+		return
+	}
+
+	if err := db.Delete(&task).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "刪除任務失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+// ============================================
+// 用戶管理
+// ============================================
+
+func getUsers(c *gin.Context) {
+	var users []models.User
+	if err := db.Find(&users).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "獲取用戶數據失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "用戶列表",
+		"data":    users,
+	})
+}
+
+func createUser(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{
+			"message": "請求數據格式錯誤",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := db.Create(&user).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "創建用戶失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(201, gin.H{
+		"message": "用戶已創建",
+		"data":    user,
+	})
+}
+
+func updateUser(c *gin.Context) {
+	id := c.Param("id")
+	var user models.User
+
+	if err := db.First(&user, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "用戶不存在",
+		})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{
+			"message": "請求數據格式錯誤",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := db.Save(&user).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "更新用戶失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "用戶已更新",
+		"data":    user,
+	})
+}
+
+func deleteUser(c *gin.Context) {
+	id := c.Param("id")
+	var user models.User
+
+	if err := db.First(&user, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"message": "用戶不存在",
+		})
+		return
+	}
+
+	if err := db.Delete(&user).Error; err != nil {
+		c.JSON(500, gin.H{
+			"message": "刪除用戶失敗",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "用戶已刪除",
+	})
 }
