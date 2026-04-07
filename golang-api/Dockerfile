@@ -1,12 +1,15 @@
 # 構建階段 (Build Stage)
 FROM golang:1.21-alpine AS builder
 
+# 安裝 git
+RUN apk add --no-cache git
+
 WORKDIR /build
 
-# 複製 go.mod 和 go.sum
-COPY go.mod go.sum* ./
+# 複製 go.mod
+COPY go.mod ./
 
-# 下載依賴
+# 下載依賴並生成 go.sum
 RUN go mod download && go mod tidy
 
 # 複製所有源代碼

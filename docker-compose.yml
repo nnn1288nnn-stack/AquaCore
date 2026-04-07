@@ -75,9 +75,10 @@ services:
     volumes:
       - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./web:/usr/share/nginx/html:ro
-    depends_on:
-      - golang-api
-      - python-ai
+    # 临时移除依赖以便测试nginx
+    # depends_on:
+    #   - golang-api
+    #   - python-ai
     networks:
       - app-network
 
