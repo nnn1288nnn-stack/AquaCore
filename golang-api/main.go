@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/penghu-digital-captain/golang-api/handlers"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -101,6 +102,11 @@ func main() {
 	// API 路由群組
 	api := router.Group("/api")
 	{
+		// 日誌服務
+		logHandler := handlers.NewLogHandler()
+		api.POST("/logs", logHandler.LogRequest)
+		api.GET("/logs", logHandler.GetLogs)
+
 		// 儀表板
 		api.GET("/dashboard", getDashboard)
 

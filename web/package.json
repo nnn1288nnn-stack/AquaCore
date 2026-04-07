@@ -1,0 +1,31 @@
+{
+  "name": "penghu-digital-captain",
+  "version": "1.0.0",
+  "description": "澎湖數位老船長 - 養殖漁業管理系統前端",
+  "main": "src/main.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "bootstrap": "^5.3.0",
+    "bootstrap-icons": "^1.10.0",
+    "express": "^4.22.1",
+    "pinia": "^3.0.4",
+    "vue": "^3.3.0",
+    "vue-router": "^4.2.0"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8",
+    "vue-template-compiler": "^2.7.14"
+  },
+  "keywords": [
+    "vue",
+    "aquaculture",
+    "management"
+  ],
+  "author": "澎湖數位老船長團隊",
+  "license": "MIT"
+}

@@ -8,11 +8,13 @@ import (
 	"log"
 	"sync"
 	"time"
+
+	opencli "github.com/penghu-digital-captain/golang-api/opencli"
 )
 
 // AgentService - 本地 Agent 服务
 type AgentService struct {
-	OpenCli      *OpenCliClient
+	OpenCli      *opencli.OpenCliClient
 	cache        map[string]interface{}
 	cacheMutex   sync.RWMutex
 	sessionID    string
@@ -22,7 +24,7 @@ type AgentService struct {
 // NewAgentService - 创建新的 Agent 服务
 func NewAgentService(debug bool) *AgentService {
 	return &AgentService{
-		OpenCli:    NewOpenCliClient(debug),
+		OpenCli:    opencli.NewOpenCliClient(debug),
 		cache:      make(map[string]interface{}),
 		sessionID:  generateSessionID(),
 	}

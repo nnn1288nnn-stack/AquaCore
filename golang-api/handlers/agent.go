@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	opencli "github.com/penghu-digital-captain/golang-api/opencli"
 	"github.com/penghu-digital-captain/golang-api/utils"
 )
 
@@ -171,7 +172,7 @@ func (h *AgentHandler) SubmitForm(c *gin.Context) {
 // GetPageStateResponse - 获取页面状态响应
 type GetPageStateResponse struct {
 	Success bool                   `json:"success"`
-	Data    *utils.PageState       `json:"data,omitempty"`
+	Data    *opencli.PageState     `json:"data,omitempty"`
 	Error   string                 `json:"error,omitempty"`
 }
 

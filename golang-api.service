@@ -1,0 +1,21 @@
+[Unit]
+Description=澎湖數位老船長 Golang API
+After=network.target mariadb.service
+Requires=mariadb.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/home/ouo/project/golang-api
+ExecStart=/home/ouo/project/golang-api/app
+Restart=always
+RestartSec=5
+Environment=DB_HOST=localhost
+Environment=DB_PORT=3306
+Environment=DB_USER=appuser
+Environment=DB_PASSWORD=apppass
+Environment=DB_NAME=aquaculture
+Environment=PORT=8080
+
+[Install]
+WantedBy=multi-user.target

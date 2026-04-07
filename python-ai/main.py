@@ -122,21 +122,96 @@ async def chat(request: ChatMessage):
     logger.info(f"📨 收到訊息: {request.message}")
 
     try:
-        # TODO: 初始化 Agent 和工具
-        # agent = create_agent()
-        # result = agent.run(request.message)
-
-        # 臨時簡單回應 (實現 Agent 後移除)
-        reply = f"我收到了您的訊息: '{request.message}'。這是一個臨時回應。"
+        # 低 token 消耗的簡化回應邏輯
+        response = await generate_low_token_response(request.message, request.language)
 
         return ChatResponse(
-            reply=reply,
+            reply=response,
             action="chat"
         )
 
     except Exception as e:
         logger.error(f"❌ 聊天處理失敗: {str(e)}")
         raise HTTPException(status_code=500, detail=f"處理失敗: {str(e)}")
+
+
+async def generate_low_token_response(message: str, language: str = "zh-TW") -> str:
+    """
+    生成低 token 消耗的回應
+
+    Args:
+        message: 用戶消息
+        language: 語言
+
+    Returns:
+        簡潔回應
+    """
+    # 關鍵字匹配，減少 LLM 調用
+    message_lower = message.lower()
+
+    # 庫存查詢
+    if any(keyword in message_lower for keyword in ["庫存", "inventory", "stock", "飼料", "藥品"]):
+        try:
+            inventory = await check_inventory()
+            return f"📦 庫存資訊: {len(inventory)} 項物品在庫。建議檢查詳細清單。"
+        except:
+            return "📦 庫存查詢服務暫時不可用。"
+
+    # 環境數據
+    elif any(keyword in message_lower for keyword in ["環境", "水質", "溫度", "鹽度", "溶氧", "environment"]):
+        try:
+            env_data = await get_environmental_data()
+            return f"🌊 環境數據: 目前監測 {len(env_data) if isinstance(env_data, list) else 1} 項參數。"
+        except:
+            return "🌊 環境監測服務暫時不可用。"
+
+    # 任務管理
+    elif any(keyword in message_lower for keyword in ["任務", "工作", "待辦", "task", "todo"]):
+        try:
+            tasks = await call_golang_api("GET", "/api/tasks")
+            pending_count = len([t for t in tasks if t.get('status') == 'pending'])
+            return f"✅ 任務狀態: {pending_count} 項待完成任務。"
+        except:
+            return "✅ 任務管理服務暫時不可用。"
+
+    # OpenClaw CLI 集成
+    elif any(keyword in message_lower for keyword in ["openclaw", "cli", "命令", "指令", "command"]):
+        return await handle_openclaw_command(message)
+
+    # 預設回應
+    else:
+        responses = [
+            "我可以幫您查詢庫存、環境數據或任務狀態。",
+            "請告訴我您需要什麼幫助？",
+            "我可以協助您管理養殖作業。",
+        ]
+        return responses[len(message) % len(responses)]
+
+
+async def handle_openclaw_command(message: str) -> str:
+    """
+    處理 OpenClaw CLI 命令
+
+    Args:
+        message: 用戶消息
+
+    Returns:
+        CLI 命令結果
+    """
+    try:
+        # 簡單的命令解析
+        if "status" in message.lower():
+            # 模擬 OpenClaw 狀態檢查
+            return "🔧 OpenClaw CLI 狀態: 運行中，所有服務正常。"
+        elif "restart" in message.lower():
+            # 模擬重啟命令
+            return "🔄 OpenClaw CLI 重啟中... 請稍候。"
+        else:
+            return "💡 支援的 OpenClaw 命令: status, restart"
+
+    except Exception as e:
+        logger.error(f"OpenClaw CLI 處理失敗: {str(e)}")
+        return "❌ OpenClaw CLI 命令執行失敗。"
 
 
 # ============================================

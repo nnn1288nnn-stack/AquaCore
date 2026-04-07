@@ -55,8 +55,11 @@
 
 | 層級 | 技術 | 用途 |
 |------|------|------|
-| **前端** | HTML5/JavaScript/CSS | LINE LIFF 介面 |
-| **網頁** | Nginx | 靜態文件、反向代理 |
+| **前端** | Vue.js 3 + Bootstrap 5 | 現代化 Web 應用程式 |
+| **狀態管理** | Pinia | 響應式狀態管理 |
+| **路由** | Vue Router 4 | 單頁應用路由 |
+| **HTTP 客戶端** | Axios | API 請求與攔截器 |
+| **網頁** | Nginx | 反向代理、靜態文件服務 |
 | **後端 A** | Golang + Gin + GORM | 高併發 API、CRUD、業務邏輯 |
 | **後端 B** | Python 3.10+ FastAPI + LangChain | AI Agent、LLM 串接、Tool Calling |
 | **資料庫** | MariaDB 10.11 | 數據持久化、ORM 支援 |
@@ -92,9 +95,9 @@ docker-compose logs -f
 
 | 服務 | URL | 說明 |
 |------|-----|------|
-| **網頁首頁** | http://localhost | Nginx 靜態頁面 |
-| **Golang API** | http://localhost:8080/api | 業務 API 入口 |
-| **Python AI** | http://localhost:8000/api | AI 服務入口 |
+| **Vue.js 前端** | http://localhost | 現代化 Web 應用程式 |
+| **Golang API** | http://localhost/api/golang | 業務 API 入口 |
+| **Python AI** | http://localhost/api/ai | AI 服務入口 |
 | **MariaDB** | localhost:3306 | 資料庫連線 |
 
 ## 📁 項目結構
