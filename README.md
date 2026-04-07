@@ -96,8 +96,9 @@ docker-compose logs -f
 | 服務 | URL | 說明 |
 |------|-----|------|
 | **Vue.js 前端** | http://localhost | 現代化 Web 應用程式 |
-| **Golang API** | http://localhost/api/golang | 業務 API 入口 |
-| **Python AI** | http://localhost/api/ai | AI 服務入口 |
+| **Golang API** | http://localhost:8080 | 業務 API 入口 |
+| **Python AI** | http://localhost:8000 | AI 服務入口 |
+| **Nginx 前端入口** | http://localhost 或 http://192.168.50.75 | 由 Nginx 代理靜態頁面和 /api | 
 | **MariaDB** | localhost:3306 | 資料庫連線 |
 
 ## 📁 項目結構
@@ -132,12 +133,15 @@ project/
 ├── nginx/                            # 🌐 Nginx 網頁服務
 │   ├── Dockerfile                    # Nginx 容器定義
 │   ├── conf/                         # Nginx 配置
-│   │   └── nginx.conf               # 主配置文件
-│   └── html/                         # 靜態文件
-│       └── index.html               # 首頁
+│   │   └── nginx.conf                # 主配置文件（實際運行中使用）
+│   └── html/                         # 靜態備用頁面
+│       └── index.html                # 備用舊首頁，實際靜態文件由 web/dist 提供
 │
 ├── mysql-init/                       # 🗄️ 數據庫初始化
 │   └── init.sql                      # SQL 初始化腳本
+│
+├── web/nginx.conf.legacy             # 重複的舊 Nginx 配置，已移至備用
+├── web/legacy-nginx-index.html       # 備用舊首頁，未作為 Docker 服務主頁
 │
 ├── web/                              # 💬 LINE LIFF 前端
 │   ├── index.html                    # LINE LIFF 首頁
@@ -169,6 +173,8 @@ GET  /api/dashboard              - 取得儀表板概覽
 GET  /api/environmental-data     - 查詢環境數據
 POST /api/environmental-data     - 記錄環境數據
 
+> ✅ 已支援資料庫寫入，可透過前端表單或直接呼叫此 API，將環境數據存入 MariaDB。
+
 ## 庫存管理  
 GET  /api/assets                 - 查詢庫存清單
 POST /api/assets                 - 新增物品
@@ -194,6 +200,7 @@ POST /api/agent/create-task      - 建立任務
 POST /api/agent/generate-report  - 生成報表
 ```
 
+> 🔔 未來擴充：可額外新增 `/api/weather` 端點，從氣象局或中央氣象局開放資料抓取天氣資訊，並與養殖環境數據結合。
 ## 🤖 AI Agent 工作流程
 
 ```
