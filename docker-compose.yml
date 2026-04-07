@@ -71,6 +71,9 @@ services:
       dockerfile: Dockerfile
     container_name: vue-frontend
     restart: always
+    depends_on:
+      - golang-api
+      - python-ai
     networks:
       - app-network
 
