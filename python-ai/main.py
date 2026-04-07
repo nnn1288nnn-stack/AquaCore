@@ -13,6 +13,8 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import httpx
 
+from utils.local_agent import LocalAgentService
+
 # 加載環境變數
 load_dotenv()
 
@@ -62,15 +64,16 @@ class ChatResponse(BaseModel):
     action: str = "none"
 
 
-# ============================================
 # 環境配置
-# ============================================
 
 GOLANG_API_URL = os.getenv("GOLANG_API_URL", "http://golang-api:8080")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 logger.info(f"🔗 Golang API URL: {GOLANG_API_URL}")
+
+# 初始化本地 Agent 服務
+local_agent = LocalAgentService(debug=True)
 
 # ============================================
 # 健康檢查
@@ -284,6 +287,48 @@ async def generate_report(date_range: str = "daily"):
 
     except Exception as e:
         return {"error": f"生成失敗: {str(e)}"}
+
+
+# ============================================
+# 本地 Agent 路由
+# ============================================
+
+class NavigateRequest(BaseModel):
+    url: str
+    extractors: dict = None
+
+@app.post("/api/agent/navigate")
+async def agent_navigate(req: NavigateRequest):
+    """本地 Agent 導航端點"""
+    result = local_agent.navigate_and_extract(req.url, req.extractors)
+    return result
+
+
+class FormSubmitRequest(BaseModel):
+    fields: dict
+    submit_button_index: int
+
+@app.post("/api/agent/form-submit")
+async def agent_form_submit(req: FormSubmitRequest):
+    """本地 Agent 提交表單端點"""
+    result = local_agent.fill_and_submit_form(req.fields, req.submit_button_index)
+    return result
+
+
+class TableExtractRequest(BaseModel):
+    table_selector: str
+
+@app.post("/api/agent/extract-table")
+async def agent_extract_table(req: TableExtractRequest):
+    """本地 Agent 提取表格端點"""
+    result = local_agent.extract_table(req.table_selector)
+    return result
+
+
+@app.get("/api/agent/session")
+async def agent_get_session():
+    """獲取 Agent 會話信息"""
+    return local_agent.get_session_info()
 
 
 # ============================================
