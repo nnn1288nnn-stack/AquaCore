@@ -1,0 +1,47 @@
+# 環境變數
+.env
+.env.local
+.env.*.local
+
+# Go
+golang-api/bin/
+golang-api/.build/
+golang-api/*.mod.bak
+golang-api/vendor/
+golang-api/.idea/
+golang-api/*.swp
+golang-api/*.swo
+
+# Python
+python-ai/__pycache__/
+python-ai/*.py[cod]
+python-ai/*$py.class
+python-ai/.venv/
+python-ai/venv/
+python-ai/.pytest_cache/
+python-ai/.mypy_cache/
+python-ai/dist/
+python-ai/build/
+python-ai/*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Docker
+.dockerignore
+
+# Database
+mariadb_data/
+
+# 敏感資訊
+secrets/
+*.pem

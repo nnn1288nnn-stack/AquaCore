@@ -1,0 +1,32 @@
+# Go 忽略規則
+bin/
+vendor/
+*.mod.bak
+*.mod~
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.iml
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Test
+coverage/
+*.cover
+*.test
+
+# Build
+build/
+dist/
+out/

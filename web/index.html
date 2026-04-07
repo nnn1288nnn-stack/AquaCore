@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澎湖數位老船長 - 養殖漁業管理系統</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <div id="app" class="container">
+        <!-- 導航欄 -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                🐠 澎湖數位老船長
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="#dashboard">儀表板</a></li>
+                <li><a href="#environment">環境監測</a></li>
+                <li><a href="#assets">庫存管理</a></li>
+                <li><a href="#tasks">任務管理</a></li>
+                <li><a href="#chat">AI 助手</a></li>
+            </ul>
+        </nav>
+
+        <!-- 主內容區 -->
+        <main class="main-content">
+            <!-- 儀表板 -->
+            <section id="dashboard" class="section">
+                <h1>📊 儀表板</h1>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>水溫</h3>
+                        <p class="metric">24.5°C</p>
+                        <small>最後更新: 今日 14:30</small>
+                    </div>
+                    <div class="card">
+                        <h3>鹽度</h3>
+                        <p class="metric">30.2 ppt</p>
+                        <small>最後更新: 今日 14:30</small>
+                    </div>
+                    <div class="card">
+                        <h3>溶氧量</h3>
+                        <p class="metric">7.5 mg/L</p>
+                        <small>最後更新: 今日 14:30</small>
+                    </div>
+                    <div class="card">
+                        <h3>待辦任務</h3>
+                        <p class="metric">5</p>
+                        <small>需要關注</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 環境監測 -->
+            <section id="environment" class="section">
+                <h2>🌊 環境監測</h2>
+                <div class="form-group">
+                    <label>水溫 (°C):</label>
+                    <input type="number" step="0.1" placeholder="24.5">
+                </div>
+                <div class="form-group">
+                    <label>鹽度 (ppt):</label>
+                    <input type="number" step="0.1" placeholder="30.2">
+                </div>
+                <div class="form-group">
+                    <label>溶氧量 (mg/L):</label>
+                    <input type="number" step="0.1" placeholder="7.5">
+                </div>
+                <button class="btn btn-primary">記錄數據</button>
+            </section>
+
+            <!-- 庫存管理 -->
+            <section id="assets" class="section">
+                <h2>📦 庫存管理</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>物品名稱</th>
+                            <th>分類</th>
+                            <th>數量</th>
+                            <th>單位</th>
+                            <th>狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assets-table">
+                        <tr>
+                            <td>高級飼料 A</td>
+                            <td>飼料</td>
+                            <td>150</td>
+                            <td>公斤</td>
+                            <td><span class="badge badge-success">充足</span></td>
+                        </tr>
+                        <tr>
+                            <td>消毒藥劑</td>
+                            <td>藥劑</td>
+                            <td>12</td>
+                            <td>瓶</td>
+                            <td><span class="badge badge-warning">即將不足</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 任務管理 -->
+            <section id="tasks" class="section">
+                <h2>✅ 任務管理</h2>
+                <div class="task-list">
+                    <div class="task-item">
+                        <div class="task-header">
+                            <h4>檢查水質</h4>
+                            <span class="badge badge-danger">高優先</span>
+                        </div>
+                        <p class="task-description">每日水質參數檢測</p>
+                        <small>截止日期: 2026-04-07</small>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-header">
+                            <h4>補充飼料</h4>
+                            <span class="badge badge-info">中優先</span>
+                        </div>
+                        <p class="task-description">補充高級飼料 A</p>
+                        <small>截止日期: 2026-04-08</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI 助手 -->
+            <section id="chat" class="section">
+                <h2>🤖 AI 助手 - 老船長</h2>
+                <div class="chat-container">
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="message message-bot">
+                            <p>你好! 我是澎湖數位老船長。我可以幫助你查詢庫存、管理任務、監測環境數據。有什麼我可以幫忙的嗎?</p>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="user-input" placeholder="輸入你的問題或命令...">
+                        <button id="send-btn" class="btn btn-primary">發送</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 頁腳 -->
+        <footer class="footer">
+            <p>&copy; 2026 澎湖數位老船長 - 養殖漁業管理系統 (MVP)</p>
+            <p>使用 Golang + Python FastAPI + MariaDB 構建</p>
+        </footer>
+    </div>
+
+    <script src="static/js/app.js"></script>
+</body>
+</html>

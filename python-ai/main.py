@@ -1,0 +1,308 @@
+"""
+澎湖數位老船長 - Python FastAPI 主應用
+負責 AI Agent、LLM 串接、Tool Calling 等
+
+啟動命令: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+"""
+
+import os
+import logging
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from dotenv import load_dotenv
+import httpx
+
+# 加載環境變數
+load_dotenv()
+
+# 配置日誌
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# ============================================
+# 創建 FastAPI 應用
+# ============================================
+
+app = FastAPI(
+    title="澎湖數位老船長 - AI 服務",
+    description="AI Agent、LLM 串接與 Tool Calling 服務",
+    version="1.0.0"
+)
+
+# ============================================
+# 中間件配置
+# ============================================
+
+# CORS 中間件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ============================================
+# 數據模型
+# ============================================
+
+class ChatMessage(BaseModel):
+    """聊天消息"""
+    message: str
+    language: str = "zh-TW"
+
+
+class ChatResponse(BaseModel):
+    """聊天回應"""
+    reply: str
+    action: str = "none"
+
+
+# ============================================
+# 環境配置
+# ============================================
+
+GOLANG_API_URL = os.getenv("GOLANG_API_URL", "http://golang-api:8080")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+logger.info(f"🔗 Golang API URL: {GOLANG_API_URL}")
+
+# ============================================
+# 健康檢查
+# ============================================
+
+@app.get("/health")
+async def health_check():
+    """健康檢查端點"""
+    return {
+        "status": "healthy",
+        "service": "python-ai",
+        "version": "1.0.0"
+    }
+
+
+@app.get("/")
+async def root():
+    """根端點"""
+    return {
+        "message": "澎湖數位老船長 - Python AI 服務",
+        "version": "1.0.0",
+        "endpoints": {
+            "chat": "POST /api/chat",
+            "health": "GET /health"
+        }
+    }
+
+# ============================================
+# API 路由
+# ============================================
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat(request: ChatMessage):
+    """
+    聊天端點 - 接收用戶消息，由 AI Agent 處理
+
+    示例:
+    ```
+    POST /api/chat
+    {
+        "message": "飼料庫存有多少?",
+        "language": "zh-TW"
+    }
+    ```
+    """
+    logger.info(f"📨 收到訊息: {request.message}")
+
+    try:
+        # TODO: 初始化 Agent 和工具
+        # agent = create_agent()
+        # result = agent.run(request.message)
+
+        # 臨時簡單回應 (實現 Agent 後移除)
+        reply = f"我收到了您的訊息: '{request.message}'。這是一個臨時回應。"
+
+        return ChatResponse(
+            reply=reply,
+            action="chat"
+        )
+
+    except Exception as e:
+        logger.error(f"❌ 聊天處理失敗: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"處理失敗: {str(e)}")
+
+
+# ============================================
+# Agent 工具 - HTTP 調用 Golang API
+# ============================================
+
+async def call_golang_api(method: str, endpoint: str, data=None):
+    """
+    通用函數: 調用 Golang API
+
+    Args:
+        method: HTTP 方法 (GET, POST, PUT, DELETE)
+        endpoint: API 端點 (如 /api/assets)
+        data: 請求數據 (JSON)
+
+    Returns:
+        API 回應
+    """
+    url = f"{GOLANG_API_URL}{endpoint}"
+    try:
+        async with httpx.AsyncClient() as client:
+            if method == "GET":
+                response = await client.get(url)
+            elif method == "POST":
+                response = await client.post(url, json=data)
+            elif method == "PUT":
+                response = await client.put(url, json=data)
+            elif method == "DELETE":
+                response = await client.delete(url)
+            else:
+                raise ValueError(f"未支援的 HTTP 方法: {method}")
+
+            if response.status_code >= 400:
+                logger.error(f"❌ API 錯誤: {response.status_code} - {response.text}")
+                raise Exception(f"API 請求失敗: {response.status_code}")
+
+            return response.json()
+
+    except Exception as e:
+        logger.error(f"❌ Golang API 調用失敗: {str(e)}")
+        raise
+
+
+# ============================================
+# Agent Tool 定義 - 查詢庫存
+# ============================================
+
+async def check_inventory(item_name: str = None):
+    """
+    Tool: 查詢庫存
+
+    Args:
+        item_name: 物品名稱 (可選)
+
+    Returns:
+        庫存清單
+    """
+    logger.info(f"🔍 查詢庫存: {item_name}")
+    try:
+        result = await call_golang_api("GET", "/api/assets")
+        logger.info(f"✅ 庫存查詢成功")
+        return result
+    except Exception as e:
+        return {"error": f"查詢失敗: {str(e)}"}
+
+
+# ============================================
+# Agent Tool 定義 - 建立任務
+# ============================================
+
+async def create_task(title: str, description: str, assigned_to: int, due_date: str):
+    """
+    Tool: 建立新任務
+
+    Args:
+        title: 任務名稱
+        description: 任務描述
+        assigned_to: 分配給的用戶 ID
+        due_date: 截止日期
+
+    Returns:
+        建立的任務
+    """
+    logger.info(f"➕ 建立任務: {title}")
+    try:
+        data = {
+            "title": title,
+            "description": description,
+            "assigned_to": assigned_to,
+            "due_date": due_date
+        }
+        result = await call_golang_api("POST", "/api/tasks", data)
+        logger.info(f"✅ 任務建立成功")
+        return result
+    except Exception as e:
+        return {"error": f"建立失敗: {str(e)}"}
+
+
+# ============================================
+# Agent Tool 定義 - 查詢環境數據
+# ============================================
+
+async def get_environmental_data():
+    """
+    Tool: 查詢環境數據
+
+    Returns:
+        最新的環境數據
+    """
+    logger.info("🌊 查詢環境數據")
+    try:
+        result = await call_golang_api("GET", "/api/environmental-data")
+        logger.info(f"✅ 環境數據查詢成功")
+        return result
+    except Exception as e:
+        return {"error": f"查詢失敗: {str(e)}"}
+
+
+# ============================================
+# Agent Tool 定義 - 生成報表
+# ============================================
+
+async def generate_report(date_range: str = "daily"):
+    """
+    Tool: 生成營運報表
+
+    Args:
+        date_range: 日期範圍 (daily/weekly/monthly)
+
+    Returns:
+        生成的報表
+    """
+    logger.info(f"📊 生成{date_range}報表")
+    try:
+        # 獲取所需數據
+        assets = await get_environmental_data()
+        tasks = await call_golang_api("GET", "/api/tasks")
+
+        report = {
+            "date_range": date_range,
+            "environmental_data": assets,
+            "tasks": tasks,
+            "generated_at": "2026-04-07"
+        }
+
+        logger.info(f"✅ 報表生成成功")
+        return report
+
+    except Exception as e:
+        return {"error": f"生成失敗: {str(e)}"}
+
+
+# ============================================
+# 啟動事件
+# ============================================
+
+@app.on_event("startup")
+async def startup_event():
+    """應用啟動時執行"""
+    logger.info("🚀 Python FastAPI 應用啟動")
+    logger.info(f"✅ LLM 配置已載入 (OpenAI: {'是' if OPENAI_API_KEY else '否'})")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """應用關閉時執行"""
+    logger.info("🛑 Python FastAPI 應用關閉")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
