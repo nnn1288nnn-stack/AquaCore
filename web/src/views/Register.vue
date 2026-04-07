@@ -154,6 +154,7 @@
 </template>
 
 <script>
+import { registerUser } from '../services/api'
 import axios from 'axios'
 
 export default {
@@ -197,7 +198,7 @@ export default {
       this.success = false
 
       try {
-        // 准备注册数据
+        // 準備註冊數據（發送到 API /api/users）
         const registerData = {
           firstName: this.form.firstName,
           lastName: this.form.lastName,
@@ -205,20 +206,19 @@ export default {
           phone: this.form.phone,
           farmName: this.form.farmName,
           farmType: this.form.farmType,
-          password: this.form.password,
-          timestamp: new Date().toISOString()
+          password: this.form.password
         }
 
-        // 调用注册 API
-        const response = await axios.post('/api/auth/register', registerData)
+        // 呼叫註冊 API
+        const response = await registerUser(registerData)
 
-        if (response.data.success) {
+        if (response.data.data || response.data.id) {
           this.success = true
 
-          // 记录注册日志
+          // 記錄註冊日誌到 API
           await this.logRegistration(registerData)
 
-          // 3秒后跳转到登录页面
+          // 3秒後跳轉到登入頁面
           setTimeout(() => {
             this.$router.push('/login')
           }, 3000)
@@ -226,7 +226,8 @@ export default {
           throw new Error(response.data.message || '註冊失敗')
         }
       } catch (error) {
-        this.error = error.response?.data?.message || error.message || '註冊失敗，請稍後再試'
+        this.error = error.response?.data?.error || error.response?.data?.message || error.message || '註冊失敗，請稍後再試'
+        console.error('註冊錯誤:', error)
       } finally {
         this.loading = false
       }

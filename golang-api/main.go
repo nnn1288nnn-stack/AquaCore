@@ -480,6 +480,45 @@ func createUser(c *gin.Context) {
 		return
 	}
 
+	// 驗證必填字段
+	if user.Name == "" {
+		c.JSON(400, gin.H{
+			"message": "用戶名稱不能為空",
+			"error":   "name is required",
+		})
+		return
+	}
+
+	if user.Email == "" {
+		c.JSON(400, gin.H{
+			"message": "電子郵件不能為空",
+			"error":   "email is required",
+		})
+		return
+	}
+
+	// 檢查郵箱是否已被註冊
+	var existingUser models.User
+	if err := db.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
+		c.JSON(409, gin.H{
+			"message": "郵箱已被註冊",
+			"error":   "email already exists",
+		})
+		return
+	}
+
+	// 設置默認值
+	if user.PreferredLang == "" {
+		user.PreferredLang = "zh-TW"
+	}
+	if user.Role == "" {
+		user.Role = "operator"
+	}
+	if user.Status == "" {
+		user.Status = "active"
+	}
+
+	// 創建用戶
 	if err := db.Create(&user).Error; err != nil {
 		c.JSON(500, gin.H{
 			"message": "創建用戶失敗",
@@ -487,6 +526,8 @@ func createUser(c *gin.Context) {
 		})
 		return
 	}
+
+	log.Printf("✅ 新用戶已註冊: %s (ID: %d)", user.Email, user.ID)
 
 	c.JSON(201, gin.H{
 		"message": "用戶已創建",
